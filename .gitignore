@@ -1,0 +1,13 @@
+# Release builds
+*.zip
+dist/
+
+# Editors
+.vscode/*
+!.vscode/settings.json
+.history/
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store

@@ -1,0 +1,11 @@
+## Interface: 16001
+## Title: Legacy Unlock
+## Notes: WoW Forever: open the Legacy window even with no Legacy points, from its key binding and its micro menu button.
+## Author: StarkzXP1
+## IconTexture: Interface\AddOns\LegacyUnlock\Media\LegacyUnlock
+## Version: 1.0.0
+## Category-enUS: Interface Enhancements
+## Category-esES: Mejoras de la interfaz
+## Category-esMX: Mejoras de la interfaz
+
+LegacyUnlock.lua

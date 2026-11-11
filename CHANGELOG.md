@@ -1,0 +1,3 @@
+- First release
+- The Legacy key binding opens the Legacy window at Legacy level 0
+- The Legacy micro menu button is enabled at Legacy level 0 and opens the window

@@ -1,0 +1,67 @@
+name: Upload to CurseForge
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    upload-addon:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Get repository name
+              run: echo "repo_name=$(basename ${{ github.repository }})" >> $GITHUB_ENV
+
+            - name: Extract version and game version
+              run: |
+                  # WoW Forever only: a single .toc.
+                  version=$(grep -Po "(?<=## Version: )\d+\.\d+\.\d+" ${{ env.repo_name }}.toc)
+                  echo "addon_version=$version" >> $GITHUB_ENV
+
+                  interface=$(grep -h "## Interface:" ${{ env.repo_name }}.toc | grep -Eo '[0-9]+' | head -n 1)
+                  major=$((interface / 10000))
+                  minor=$(( (interface % 10000) / 100 ))
+                  patch=$((interface % 100))
+                  echo "game_versions=${major}.${minor}.${patch}" >> $GITHUB_ENV
+
+            - name: Prepare addon folder
+              run: |
+                  mkdir "${{ env.repo_name }}"
+                  rsync -av --progress ./* "${{ env.repo_name }}/" \
+                      --exclude ".git*" \
+                      --exclude ".github*" \
+                      --exclude ".vscode*" \
+                      --exclude "README.md" \
+                      --exclude "CHANGELOG.md" \
+                      --exclude "description.txt" \
+                      --exclude "Media/icon_*.png" \
+                      --exclude "Media/logo*" \
+                      --exclude "${{ env.repo_name }}"
+
+            - name: Create addon ZIP
+              run: |
+                  zip -r "${{ env.repo_name }}-${{ env.addon_version }}.zip" "${{ env.repo_name }}"
+
+            - name: Read CHANGELOG.md file content
+              id: get_changelog
+              run: |
+                  changelog_content=$(cat CHANGELOG.md)
+                  echo "text<<EOF" >> $GITHUB_OUTPUT
+                  echo "$changelog_content" >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
+
+            - name: Upload to CurseForge
+              uses: itsmeow/curseforge-upload@v3.1.2
+              with:
+                  token: ${{ secrets.CURSEFORGE_API_KEY }}
+                  project_id: ${{ secrets.CURSEFORGE_PROJECT_ID }}
+                  game_endpoint: "wow"
+                  game_versions: "${{ env.game_versions }}"
+                  file_path: "${{ env.repo_name }}-${{ env.addon_version }}.zip"
+                  changelog: ${{ steps.get_changelog.outputs.text }}
+                  changelog_type: markdown
+                  release_type: release
